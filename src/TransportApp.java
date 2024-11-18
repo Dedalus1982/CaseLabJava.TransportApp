@@ -18,7 +18,16 @@ enum FuelType {
     GRASS
 }
 
-sealed abstract class Transport permits Car, Airplane, Ship, Bicycle, Donkey {
+// Интерфейс для управления транспортом
+interface TransportActions {
+    void start(); // метод для пкска транспорта
+    void stop(); // метод для остановки транспорта
+    void refuel(); // метод для заправки
+    void displayInfo(); // метод для вывода информации о состоянии транспорта
+}
+
+
+abstract class Transport implements TransportActions {
     protected String name; // #Название транспорта
     protected int capacityPpl; // Вместимость (чел)
     protected int capacityCargo; // Вместимость (кг)
@@ -37,11 +46,6 @@ sealed abstract class Transport permits Car, Airplane, Ship, Bicycle, Donkey {
         this.isMoving = false; // Изначально транспорт остановлен
     }
 
-    public abstract void start(); // метод для пкска транспорта
-    public abstract void stop(); // метод для остановки транспорта
-    public abstract void refuel(); // метод для заправки
-    public abstract void displayInfo(); // метод для вывода информации о состоянии транспорта
-
     public boolean isMoving() {
         return isMoving;
     }
@@ -51,6 +55,7 @@ sealed abstract class Transport permits Car, Airplane, Ship, Bicycle, Donkey {
     }
 }
 
+// Виды транспорта (Автомобиль, самолет и т.д.)
 final class Car extends Transport {
     final private String colorType;
 
@@ -277,161 +282,170 @@ final class Donkey extends Transport {
     }
 }
 
+// Класс для управления вводом и выводом
+class TransportManager {
+    private Scanner scanner;
 
-public class TransportApp {
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        Transport[] transports = new Transport[10]; // Максимум 10 транспортных средств
-        int transportCount = 0;
-
-        while (true) {
-            System.out.println("Выберите тип транспорта для создания (модно макимум 10 создать):");
-            System.out.println("1. Автомобиль");
-            System.out.println("2. Самолет");
-            System.out.println("3. Корабль");
-            System.out.println("4. Велосипед");
-            System.out.println("5. Осел");
-            System.out.println("0. Выход");
-
-            int choice = getIntInput(scanner);
-
-            if (choice == 0) {
-                break;
-            }
-
-            if (transportCount >= transports.length) {
-                System.out.println("Достигнуто максимальное количество транспортных средств.");
-                continue;
-            }
-
-            System.out.print("Введите название: ");
-            String name = scanner.nextLine();
-            System.out.print("Сколько человек везет (чел.): ");
-            int capacityPpl = getIntInput(scanner);
-            System.out.print("Сколько груза везет (кг): ");
-            int capacityCargo = getIntInput(scanner);
-            System.out.print("Введите максимальную скорость (км/ч): ");
-            double maxSpeed = getDoubleInput(scanner);
-            // Prompt for fuel type
-            System.out.println("Чем заправлять будем:");
-            for (FuelType fuel : FuelType.values()) {
-                System.out.println(fuel.ordinal() + 1 + ". " + fuel);
-            }
-            int fuelChoice = getIntInput(scanner);
-            FuelType fuelType = FuelType.values()[fuelChoice - 1]; // Get the selected fuel type
-
-            switch (choice) {
-                case 1:
-                    System.out.print("Введите цвет машины: ");
-                    String colorType = scanner.nextLine();
-                    transports[transportCount++] = new Car(name, capacityPpl, capacityCargo, maxSpeed, fuelType, colorType);
-                    break;
-
-                case 2:
-                    System.out.print("Введите количество двигателей: ");
-                    String gearType = scanner.nextLine();
-                    transports[transportCount++] = new Airplane(name, capacityPpl, capacityCargo, maxSpeed, fuelType, gearType);
-                    break;
-
-                case 3:
-                    System.out.print("Введите количество труб: ");
-                    String tubeType = scanner.nextLine();
-                    transports[transportCount++] = new Ship(name, capacityPpl, capacityCargo, maxSpeed, fuelType, tubeType);
-                    break;
-
-                case 4:
-                    transports[transportCount++] = new Bicycle(name, capacityPpl, capacityCargo, maxSpeed, null);
-                    break;
-
-                case 5:
-                    System.out.print("Введите настроение осла: ");
-                    String auraType = scanner.nextLine();
-                    transports[transportCount++] = new Donkey(name, 0,capacityCargo, maxSpeed, fuelType, auraType);
-                    break;
-
-                default:
-                    System.out.println("Неверный выбор. Пожалуйста, попробуйте снова.");
-                    break;
-            }
-
-            // Вывод информации о всех транспортных средствах
-            displayTransportList(transports, transportCount);
-        }
-
-        // Управление транспортными средствами
-        while (true) {
-            System.out.println("\nВыберите транспорт для управления (или введите 0 для выхода):");
-            displayTransportList(transports, transportCount);
-            int transportChoice = getIntInput(scanner);
-
-            if (transportChoice == 0) {
-                break;
-            }
-
-            if (transportChoice < 1 || transportChoice > transportCount) {
-                System.out.println("Неверный выбор. Пожалуйста, попробуйте снова.");
-                continue;
-            }
-
-            Transport selectedTransport = transports[transportChoice - 1];
-
-            System.out.println("Выберите действие:");
-            System.out.println("1. Запустить");
-            System.out.println("2. Остановить");
-            System.out.println("3. Заправить");
-
-            int actionChoice = getIntInput(scanner);
-
-            switch (actionChoice) {
-                case 1:
-                    selectedTransport.start();
-                    break;
-                case 2:
-                    selectedTransport.stop();
-                    break;
-                case 3:
-                    selectedTransport.refuel();
-                    break;
-                default:
-                    System.out.println("Неверный выбор. Пожалуйста, попробуйте снова.");
-                    break;
-            }
-
-            // Вывод информации о всех транспортных средствах после действия
-            displayTransportList(transports, transportCount);
-        }
-
-        scanner.close();
-        System.out.println("Программа завершена.");
+    public TransportManager() {
+        this.scanner = new Scanner(System.in);
     }
 
-    private static void displayTransportList(Transport[] transports, int transportCount) {
+    public Transport createTransport() {
+        System.out.println("Выберите тип транспорта для создания:");
+        System.out.println("1. Автомобиль");
+        System.out.println("2. Самолет");
+        System.out.println("3. Корабль");
+        System.out.println("4. Велосипед");
+        System.out.println("5. Осел");
+        System.out.println("0. Выход");
+
+        int choice = getIntInput();
+
+        if (choice == 0) {
+            return null;
+        }
+
+        System.out.print("Введите название: ");
+        String name = scanner.nextLine();
+        System.out.print("Сколько человек везет (чел.): ");
+        int capacityPpl = getIntInput();
+        System.out.print("Сколько груза везет (кг): ");
+        int capacityCargo = getIntInput();
+        System.out.print("Введите максимальную скорость (км/ч): ");
+        double maxSpeed = getDoubleInput();
+        FuelType fuelType = selectFuelType();
+
+        switch (choice) {
+            case 1:
+                System.out.print("Введите цвет машины: ");
+                String colorType = scanner.nextLine();
+                return new Car(name, capacityPpl, capacityCargo, maxSpeed, fuelType, colorType);
+            case 2:
+                System.out.print("Введите тип двигателя: ");
+                String gearType = scanner.nextLine();
+                return new Airplane(name, capacityPpl, capacityCargo, maxSpeed, fuelType, gearType);
+            case 3:
+                System.out.print("Введите тип труб: ");
+                String tubeType = scanner.nextLine();
+                return new Ship(name, capacityPpl, capacityCargo, maxSpeed, fuelType, tubeType);
+            case 4:
+                return new Bicycle(name, capacityPpl, capacityCargo, maxSpeed, fuelType);
+            case 5:
+                System.out.print("Введите тип ушей: ");
+                String earsType = scanner.nextLine();
+                return new Donkey(name, capacityPpl, capacityCargo, maxSpeed, fuelType, earsType);
+            default:
+                System.out.println("Неверный выбор.");
+                return null;
+        }
+    }
+
+    public void manageTransport(Transport transport) {
+        System.out.println("Выберите действие:");
+        System.out.println("1. Запустить");
+        System.out.println("2. Остановить");
+        System.out.println("3. Заправить");
+
+        int actionChoice = getIntInput();
+        switch (actionChoice) {
+            case 1:
+                transport.start();
+                break;
+            case 2:
+                transport.stop();
+                break;
+            case 3:
+                transport.refuel();
+                break;
+            default:
+                System.out.println("Неверный выбор.");
+                break;
+        }
+    }
+
+    private FuelType selectFuelType() {
+        System.out.println("Чем заправлять будем:");
+        for (FuelType fuel : FuelType.values()) {
+            System.out.println(fuel.ordinal() + 1 + ". " + fuel);
+        }
+        int fuelChoice = getIntInput();
+        return FuelType.values()[fuelChoice - 1];
+    }
+
+    protected int getIntInput() {
+        while (true) {
+            String input = scanner.nextLine();
+            try {
+                return Integer.parseInt(input);
+            } catch (NumberFormatException e) {
+                System.out.println("введите целое число.");
+            }
+        }
+    }
+
+    private double getDoubleInput() {
+        while (true) {
+            String input = scanner.nextLine();
+            try {
+                return Double.parseDouble(input);
+            } catch (NumberFormatException e) {
+                System.out.println("введите число с плавающей запятой.");
+            }
+        }
+    }
+
+    public void displayTransportList(Transport[] transports, int transportCount) {
         System.out.println("\nСписок транспортных средств:");
         for (int i = 0; i < transportCount; i++) {
             System.out.print((i + 1) + ". ");
             transports[i].displayInfo();
         }
     }
+}
 
-    private static int getIntInput(Scanner scanner) {
-        while (true) {
-            String input = scanner.nextLine();
-            try {
-                return Integer.parseInt(input);
-            } catch (NumberFormatException e) {
-                System.out.println("Неверный ввод. Пожалуйста, введите целое число.");
-            }
-        }
-    }
+// Главный класс приложения
+public class TransportApp {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        Transport[] transports = new Transport[10];
+        int transportCount = 0;
+        TransportManager manager = new TransportManager();
 
-    private static double getDoubleInput(Scanner scanner) {
         while (true) {
-            String input = scanner.nextLine();
-            try {
-                return Double.parseDouble(input);
-            } catch (NumberFormatException e) {
-                System.out.println("Неверный ввод. Пожалуйста, введите число с плавающей запятой.");
+            Transport newTransport = manager.createTransport();
+            if (newTransport == null) {
+                break;
             }
+            if (transportCount >= transports.length) {
+                System.out.println("Достигнуто максимальное количество транспортных средств.");
+                continue;
+            }
+            transports[transportCount++] = newTransport;
+            manager.displayTransportList(transports, transportCount);
         }
+
+        while (true) {
+            System.out.println("\nВыберите транспорт для управления (или введите 0 для выхода):");
+            manager.displayTransportList(transports, transportCount);
+            int transportChoice = manager.getIntInput();
+
+            if (transportChoice == 0) {
+                break;
+            }
+
+            if (transportChoice < 1 || transportChoice > transportCount) {
+                System.out.println("Неверный выбор.");
+                continue;
+            }
+
+            Transport selectedTransport = transports[transportChoice - 1];
+            manager.manageTransport(selectedTransport);
+            manager.displayTransportList(transports, transportCount);
+        }
+
+        scanner.close();
+        System.out.println("Программа завершена.");
     }
 }
+
+
