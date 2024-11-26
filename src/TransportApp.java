@@ -1,5 +1,19 @@
 import java.util.Scanner;
 
+// Исключение для неправильной (отриц) вместимости
+class InvalidCapacityException extends Exception {
+    public InvalidCapacityException(String message) {
+        super(message);
+    }
+}
+
+// Исключение для неправильной  (отриц) максимальной скорости
+class InvalidSpeedException extends Exception {
+    public InvalidSpeedException(String message) {
+        super(message);
+    }
+}
+
 //  Вид транспорта
 enum TransportType {
     CAR,
@@ -291,52 +305,64 @@ class TransportManager {
     }
 
     public Transport createTransport() {
-        System.out.println("Выберите тип транспорта для создания:");
-        System.out.println("1. Автомобиль");
-        System.out.println("2. Самолет");
-        System.out.println("3. Корабль");
-        System.out.println("4. Велосипед");
-        System.out.println("5. Осел");
-        System.out.println("0. Выход");
+        while (true) {
+            System.out.println("Выберите тип транспорта для создания:");
+            System.out.println("1. Автомобиль");
+            System.out.println("2. Самолет");
+            System.out.println("3. Корабль");
+            System.out.println("4. Велосипед");
+            System.out.println("5. Осел");
+            System.out.println("0. Выход");
 
-        int choice = getIntInput();
+            int choice = getIntInput();
 
-        if (choice == 0) {
-            return null;
-        }
+            if (choice == 0) {
+                return null; // Выход из метода
+            }
 
-        System.out.print("Введите название: ");
-        String name = scanner.nextLine();
-        System.out.print("Сколько человек везет (чел.): ");
-        int capacityPpl = getIntInput();
-        System.out.print("Сколько груза везет (кг): ");
-        int capacityCargo = getIntInput();
-        System.out.print("Введите максимальную скорость (км/ч): ");
-        double maxSpeed = getDoubleInput();
-        FuelType fuelType = selectFuelType();
+            System.out.print("Введите название: ");
+            String name = scanner.nextLine();
+            System.out.print("Сколько человек везет (чел.): ");
+            int capacityPpl = getIntInput();
+            System.out.print("Сколько груза везет (кг): ");
+            int capacityCargo = getIntInput();
+            System.out.print("Введите максимальную скорость (км/ч): ");
+            double maxSpeed = getDoubleInput();
 
-        switch (choice) {
-            case 1:
-                System.out.print("Введите цвет машины: ");
-                String colorType = scanner.nextLine();
-                return new Car(name, capacityPpl, capacityCargo, maxSpeed, fuelType, colorType);
-            case 2:
-                System.out.print("Введите тип двигателя: ");
-                String gearType = scanner.nextLine();
-                return new Airplane(name, capacityPpl, capacityCargo, maxSpeed, fuelType, gearType);
-            case 3:
-                System.out.print("Введите тип труб: ");
-                String tubeType = scanner.nextLine();
-                return new Ship(name, capacityPpl, capacityCargo, maxSpeed, fuelType, tubeType);
-            case 4:
-                return new Bicycle(name, capacityPpl, capacityCargo, maxSpeed, fuelType);
-            case 5:
-                System.out.print("Введите тип ушей: ");
-                String earsType = scanner.nextLine();
-                return new Donkey(name, capacityPpl, capacityCargo, maxSpeed, fuelType, earsType);
-            default:
-                System.out.println("Неверный выбор.");
-                return null;
+            // Проверка валидности данных перед созданием транспорта
+            try {
+                validateTransportData(capacityPpl, capacityCargo, maxSpeed);
+            } catch (InvalidCapacityException | InvalidSpeedException e) {
+                System.out.println("Ошибка: " + e.getMessage());
+                System.out.println("Пожалуйста, попробуйте снова.");
+                continue; // Возврат к началу цикла для повторного выбора транспорта
+            }
+
+            FuelType fuelType = selectFuelType();
+
+            switch (choice) {
+                case 1:
+                    System.out.print("Введите цвет машины: ");
+                    String colorType = scanner.nextLine();
+                    return new Car(name, capacityPpl, capacityCargo, maxSpeed, fuelType, colorType);
+                case 2:
+                    System.out.print("Введите тип двигателя: ");
+                    String gearType = scanner.nextLine();
+                    return new Airplane(name, capacityPpl, capacityCargo, maxSpeed, fuelType, gearType);
+                case 3:
+                    System.out.print("Введите тип труб: ");
+                    String tubeType = scanner.nextLine();
+                    return new Ship(name, capacityPpl, capacityCargo, maxSpeed, fuelType, tubeType);
+                case 4:
+                    return new Bicycle(name, capacityPpl, capacityCargo, maxSpeed, fuelType);
+                case 5:
+                    System.out.print("Введите тип ушей: ");
+                    String earsType = scanner.nextLine();
+                    return new Donkey(name, capacityPpl, capacityCargo, maxSpeed, fuelType, earsType);
+                default:
+                    System.out.println("Неверный выбор.");
+                    continue; // Возврат к началу цикла для повторного выбора транспорта
+            }
         }
     }
 
@@ -399,6 +425,19 @@ class TransportManager {
         for (int i = 0; i < transportCount; i++) {
             System.out.print((i + 1) + ". ");
             transports[i].displayInfo();
+        }
+    }
+
+    public void validateTransportData(int capacityPpl, int capacityCargo, double maxSpeed)
+            throws InvalidCapacityException, InvalidSpeedException {
+        if (capacityPpl < 0) {
+            throw new InvalidCapacityException("Вместимость людей не может быть отрицательной.");
+        }
+        if (capacityCargo < 0) {
+            throw new InvalidCapacityException("Вместимость груза не может быть отрицательной.");
+        }
+        if (maxSpeed < 0) {
+            throw new InvalidSpeedException("Максимальная скорость не может быть отрицательной.");
         }
     }
 }
